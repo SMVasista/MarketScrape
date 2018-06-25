@@ -13,15 +13,18 @@ import fileutils as fl
 
 #######################################
 
-driverpath = './geckodriver'
+driverpath = '/home/user1/Desktop/sumanth/MarketScrape-master/geckodriver'
 cwd = os.getcwd()
+cap = {}
+cap["marionette"] = False
 soS = 'http://www.hdfcsec.com'
 
 def extractLinkList(sourceList):
 	#This function extracts company links from hdfc securities datasite: www.hdfcsec.com#
 	src = {}
-	for source in sourceList:
-		driver = webdriver.Firefox(executable_path=driverpath)
+	for i, source in enumerate(sourceList):
+		print "Extracting Links from page: ", source, "(", i,"/",len(sourceList), ")" 
+		driver = webdriver.Firefox(capabilities=cap, executable_path=driverpath)
 		driver.get(source)
 		html = unicode(driver.page_source.encode("utf-8"), "utf-8")
 		data = soup(html, 'html.parser')
@@ -51,7 +54,7 @@ def scrapeData(linkSource):
 		mark = str(linkSource[link])
 		dump[mark] = {}
 		try:
-			driver = webdriver.Firefox(executable_path=driverpath)
+			driver = webdriver.Firefox(capabilities=cap, executable_path=driverpath)
 			driver.get(soS+str(link))
 			html = unicode(driver.page_source.encode("utf-8"), "utf-8")
 			data = soup(html, 'html.parser')
@@ -200,7 +203,7 @@ def scrapeData(linkSource):
 		
 		#Finished one iter of data extraction. i.e one company fundamentals
 
-		wait = int(random.randint(-1,6) + 3)
+		wait = int(random.randint(0,7) + 3)
 		sleep(wait)
 		print 'Sleeping:', wait,'seconds\n'
 
@@ -212,6 +215,7 @@ def scrapeData(linkSource):
 
 def parseBhavData(bhavDataLoc):
 	#Identifies consolidated Bhav report (2y) and parses company-wise data. Other functions are defined in mathutils#
+	print "Extracting BHAV data"
 	data = fl.readLinesAndSplit(bhavDataLoc, ',')
 	TS_DATA = {}
 	uniqCName = []
@@ -253,31 +257,24 @@ if __name__=="__main__":
 	script, mSource, bhavDataLoc = sys.argv
 	
 	with open(mSource,'r') as f:
-		data = f.readlines()
-		for elem in data:
-			elem = elem.split('\n')[0]
+		data_ = f.readlines()
+		data = []
+		for elem_ in data_:
+			elem = elem_.split('\n')[0]
+			data.append(elem)
 
-	linkList = extractLinkList(data)
+
+	if os.path.isfile('./links.dump') == False:
+		linkList = extractLinkList(data)
+	else:
+		with open('./links.dump','r') as f:
+			linkList = pickle.load(f)
 	DATA = scrapeData(linkList)
-	TS_DATA = parseBhavData(bhavDataLoc)
 
-	with open('./data_scrape_report.dump','w') as f:
+	with open('./fData.dump','w') as f:
 		pickle.dump(DATA,f)
 
-	with open('./data_parsed_bhav.dump','w') as f:
+	TS_DATA = parseBhavData(bhavDataLoc)
+
+	with open('./tData.dump','w') as f:
 		pickle.dump(TS_DATA,f)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-			
