@@ -13,7 +13,7 @@ import fileutils as fl
 
 #######################################
 
-driverpath = '/home/user1/Desktop/sumanth/MarketScrape-master/geckodriver'
+driverpath = './geckodriver'
 cwd = os.getcwd()
 cap = {}
 cap["marionette"] = False
